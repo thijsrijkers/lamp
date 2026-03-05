@@ -23,7 +23,7 @@ import (
 func main() {
 	window.InitFont()
 
-	cmd := exec.Command("bash")
+	cmd := exec.Command("bash", "--login")
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		log.Fatal(err)
