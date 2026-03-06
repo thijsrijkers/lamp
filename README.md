@@ -29,14 +29,6 @@ make install-macos
 
 This builds a `Lamp.app` bundle, ad-hoc codesigns it, and installs it to `/Applications`. You can then launch it from Finder, Spotlight, or pin it to your Dock.
 
-### Install on Linux
-```bash
-make install-linux
-```
-*(NOTE: This is not tested properly yet)*
-
-Installs the binary to `/usr/local/bin` and adds a `.desktop` entry to your application launcher.
-
 ## Dependencies
 
 - [tcell](https://github.com/gdamore/tcell) — terminal screen buffer and ANSI parsing
