@@ -1,6 +1,7 @@
 package window
 
 import (
+	"lamp/config"
 	"log"
 	"os"
 
@@ -8,15 +9,11 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
-const (
-	FontSize = 15.0
-)
+const FontSize = 15.0
 
 var (
 	CharW, CharH int
 	Face         xfont.Face
-	Cols         int
-	Rows         int
 )
 
 func InitFont() {
@@ -34,7 +31,7 @@ func InitFont() {
 		}
 	}
 	if fontData == nil {
-		log.Fatal("no monospace font found — install Menlo or DejaVu Sans Mono")
+		log.Fatal("no monospace font found")
 	}
 
 	collection, err := opentype.ParseCollection(fontData)
@@ -63,10 +60,15 @@ func InitFont() {
 
 	metrics := Face.Metrics()
 	CharH = (metrics.Ascent + metrics.Descent).Ceil()
-	advance, _, _ := Face.GlyphBounds('M')
-	CharW = (advance.Max.X - advance.Min.X).Ceil()
+	advance, ok := Face.GlyphAdvance('M')
+	if !ok || advance == 0 {
+		advance, _ = Face.GlyphAdvance('A')
+	}
+	CharW = advance.Ceil()
 	if CharW == 0 {
 		CharW = CharH / 2
 	}
+
 	log.Printf("Font metrics: CharW=%d CharH=%d", CharW, CharH)
+	_ = config.Cols // ensure import used
 }

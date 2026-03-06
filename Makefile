@@ -4,18 +4,16 @@ BUILD_FLAGS := -ldflags="-s -w"
 .PHONY: build install-linux install-macos clean
 
 build:
-	go build $(BUILD_FLAGS) -o $(BINARY_NAME) .
+	echo "Building $BINARY_NAME..."
+	go build -ldflags="-s -w" -o "$BINARY_NAME" .
 
-install-linux: build
-	bash install-linux.sh
-	sed -i 's/\r//' install-linux.sh Makefile
 install-macos: build
 	bash install-macos.sh
-	# Ad-hoc codesign so macOS treats it as a proper app, not a CLI tool
 	codesign --force --deep --sign - Lamp.app
 	sudo cp -r Lamp.app /Applications/
-	# Clear quarantine on installed app
 	sudo xattr -cr /Applications/Lamp.app
+	@echo "Clearing app cache..."
+	/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/Lamp.app
 
 clean:
 	rm -f $(BINARY_NAME)
