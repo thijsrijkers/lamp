@@ -57,6 +57,7 @@ func main() {
 	}
 
 	var superHeld bool
+	var pasteInProgress bool
 
 	if deskCanvas, ok := w.Canvas().(desktop.Canvas); ok {
 		deskCanvas.SetOnKeyDown(func(e *fyne.KeyEvent) {
@@ -65,6 +66,7 @@ func main() {
 				return
 			}
 			if e.Name == fyne.KeyV && superHeld {
+				pasteInProgress = true
 				content := w.Clipboard().Content()
 				term.Write([]byte(content))
 				return
@@ -81,6 +83,10 @@ func main() {
 	}
 
 	w.Canvas().SetOnTypedRune(func(r rune) {
+		if pasteInProgress {
+			pasteInProgress = false
+			return
+		}
 		ev := tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone)
 		events.HandleEvent(term.Screen, ev, term.Write)
 	})
