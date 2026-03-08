@@ -79,10 +79,13 @@ func (r *Raster) draw(w, h int) image.Image {
 	}
 
 	if r.selecting || r.selectEnd != r.selectStart {
-		col1 := int(r.selectStart.X * float32(w) / r.raster.Size().Width / float32(cw))
-		row1 := int(r.selectStart.Y * float32(h) / r.raster.Size().Height / float32(ch))
-		col2 := int(r.selectEnd.X * float32(w) / r.raster.Size().Width / float32(cw))
-		row2 := int(r.selectEnd.Y * float32(h) / r.raster.Size().Height / float32(ch))
+		scaleX := float32(w) / r.raster.Size().Width
+		scaleY := float32(h) / r.raster.Size().Height
+
+		col1 := int(r.selectStart.X*scaleX) / cw
+		row1 := int(r.selectStart.Y*scaleY) / ch
+		col2 := int(r.selectEnd.X*scaleX) / cw
+		row2 := int(r.selectEnd.Y*scaleY) / ch
 
 		col1 = max(0, min(col1, config.Cols-1))
 		col2 = max(0, min(col2, config.Cols-1))
