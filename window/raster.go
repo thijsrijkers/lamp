@@ -108,17 +108,18 @@ func (r *Raster) CreateRenderer() fyne.WidgetRenderer {
 	return widget.NewSimpleRenderer(r.raster)
 }
 
-func (r *Raster) MouseDown(e *desktop.MouseEvent) {
-	r.selectStart = e.Position
-	r.selectEnd = e.Position
-	r.selecting = true
-}
-
 func (r *Raster) MouseMoved(e *desktop.MouseEvent) {
 	if r.selecting {
 		r.selectEnd = e.Position
 		r.raster.Refresh()
 	}
+}
+
+func (r *Raster) MouseDown(e *desktop.MouseEvent) {
+	r.selectStart = e.Position
+	r.selectEnd = e.Position
+	r.selecting = true
+	r.raster.Refresh()
 }
 
 func (r *Raster) MouseUp(e *desktop.MouseEvent) {
@@ -153,6 +154,11 @@ func (r *Raster) MouseUp(e *desktop.MouseEvent) {
 	if r.OnSelect != nil && buf.Len() > 0 {
 		r.OnSelect(buf.String())
 	}
+
+	// clear selection after copy
+	r.selectStart = fyne.Position{}
+	r.selectEnd = fyne.Position{}
+	r.raster.Refresh()
 }
 
 func (r *Raster) SetMinSize(size fyne.Size) {

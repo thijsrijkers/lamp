@@ -31,6 +31,16 @@ func main() {
 	defer term.Close()
 
 	ansiState := ansi.NewState(config.Rows)
+
+	a := app.New()
+	w := a.NewWindow("Lamp")
+
+	ansiState.OnClipboard = func(text string) {
+		fyne.Do(func() {
+			w.Clipboard().SetContent(text)
+		})
+	}
+
 	go term.ReadLoop(ansiState)
 
 	logicalW := float32(config.Cols * window.CharW / 2)
@@ -39,8 +49,6 @@ func main() {
 	raster := window.NewRaster(term.Screen, &term.CursorX, &term.CursorY)
 	raster.SetMinSize(fyne.NewSize(logicalW, logicalH))
 
-	a := app.New()
-	w := a.NewWindow("Lamp")
 	w.SetContent(raster)
 	w.SetFixedSize(true)
 	w.Resize(fyne.NewSize(logicalW, logicalH))

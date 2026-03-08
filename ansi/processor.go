@@ -1,6 +1,8 @@
 package ansi
 
 import (
+	"encoding/base64"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -90,6 +92,19 @@ func ProcessOutput(screen tcell.Screen, data []byte, cursorX, cursorY *int, stat
 					screen.Show()
 					return
 				}
+
+				// handle OSC52 clipboard
+				osc := string(data[i+2 : j])
+				if len(osc) > 3 && osc[:2] == "52" {
+					parts := strings.SplitN(osc, ";", 3)
+					if len(parts) == 3 {
+						decoded, err := base64.StdEncoding.DecodeString(parts[2])
+						if err == nil && state.OnClipboard != nil {
+							state.OnClipboard(string(decoded))
+						}
+					}
+				}
+
 				i = j
 			case '(', ')', '*', '+', '-', '.', '/':
 				i += 2
