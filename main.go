@@ -12,6 +12,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/driver/desktop"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -45,17 +46,40 @@ func main() {
 	w.Resize(fyne.NewSize(logicalW, logicalH))
 
 	go func() {
-		ticker := time.NewTicker(time.Second / 30)
+		ticker := time.NewTicker(33 * time.Millisecond)
 		for range ticker.C {
 			fyne.Do(raster.Refresh)
 		}
 	}()
 
-	w.Canvas().SetOnTypedKey(func(e *fyne.KeyEvent) {
-		if ev := window.FyneKeyToTcell(e); ev != nil {
-			events.HandleEvent(term.Screen, ev, term.Write)
-		}
-	})
+	raster.OnSelect = func(text string) {
+		w.Clipboard().SetContent(text)
+	}
+
+	var superHeld bool
+
+	if deskCanvas, ok := w.Canvas().(desktop.Canvas); ok {
+		deskCanvas.SetOnKeyDown(func(e *fyne.KeyEvent) {
+			if e.Name == desktop.KeySuperLeft || e.Name == desktop.KeySuperRight {
+				superHeld = true
+				return
+			}
+			if e.Name == fyne.KeyV && superHeld {
+				content := w.Clipboard().Content()
+				term.Write([]byte(content))
+				return
+			}
+			if ev := window.FyneKeyToTcell(e); ev != nil {
+				events.HandleEvent(term.Screen, ev, term.Write)
+			}
+		})
+		deskCanvas.SetOnKeyUp(func(e *fyne.KeyEvent) {
+			if e.Name == desktop.KeySuperLeft || e.Name == desktop.KeySuperRight {
+				superHeld = false
+			}
+		})
+	}
+
 	w.Canvas().SetOnTypedRune(func(r rune) {
 		ev := tcell.NewEventKey(tcell.KeyRune, r, tcell.ModNone)
 		events.HandleEvent(term.Screen, ev, term.Write)
