@@ -71,6 +71,14 @@ func ProcessOutput(screen tcell.Screen, data []byte, cursorX, cursorY *int, stat
 					state.ScrollTop = 0
 					state.ScrollBottom = height - 1
 				}
+				// mouse enable
+				if cmd == 'h' && (params == "?1000" || params == "?1002" || params == "?1003" || params == "?1006") {
+					state.MouseEnabled = true
+				}
+				// mouse disable
+				if cmd == 'l' && (params == "?1000" || params == "?1002" || params == "?1003" || params == "?1006") {
+					state.MouseEnabled = false
+				}
 				if params == "" || params[0] != '?' {
 					handleCSI(screen, cmd, params, cursorX, cursorY, &state.Style, width, height, state)
 				}

@@ -18,15 +18,16 @@ import (
 
 type Raster struct {
 	widget.BaseWidget
-	screen      tcell.SimulationScreen
-	cursorX     *int
-	cursorY     *int
-	raster      *canvas.Raster
-	selectStart fyne.Position
-	selectEnd   fyne.Position
-	selecting   bool
-	OnSelect    func(string)
-	Write       func([]byte)
+	screen       tcell.SimulationScreen
+	cursorX      *int
+	cursorY      *int
+	raster       *canvas.Raster
+	selectStart  fyne.Position
+	selectEnd    fyne.Position
+	selecting    bool
+	OnSelect     func(string)
+	Write        func([]byte)
+	MouseEnabled *bool
 }
 
 func NewRaster(screen tcell.SimulationScreen, cursorX, cursorY *int) *Raster {
@@ -134,9 +135,9 @@ func (r *Raster) MouseUp(e *desktop.MouseEvent) {
 
 	dx := e.Position.X - r.selectStart.X
 	dy := e.Position.Y - r.selectStart.Y
-	isClick := dx*dx+dy*dy < 25 // within 5px
+	isClick := dx*dx+dy*dy < 25
 
-	if isClick && r.Write != nil {
+	if isClick && r.Write != nil && r.MouseEnabled != nil && *r.MouseEnabled {
 		col := r.mouseCol(e.Position.X)
 		row := r.mouseRow(e.Position.Y)
 		btn := 0

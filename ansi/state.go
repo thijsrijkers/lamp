@@ -8,6 +8,7 @@ type State struct {
 	Style        tcell.Style
 	Leftover     []byte
 	OnClipboard  func(string)
+	MouseEnabled bool
 }
 
 func NewState(height int) *State {
