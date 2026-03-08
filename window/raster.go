@@ -1,6 +1,7 @@
 package window
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"lamp/config"
@@ -25,6 +26,7 @@ type Raster struct {
 	selectEnd   fyne.Position
 	selecting   bool
 	OnSelect    func(string)
+	Write       func([]byte)
 }
 
 func NewRaster(screen tcell.SimulationScreen, cursorX, cursorY *int) *Raster {
@@ -107,7 +109,31 @@ func (r *Raster) CreateRenderer() fyne.WidgetRenderer {
 	return widget.NewSimpleRenderer(r.raster)
 }
 
+func (r *Raster) mouseCol(x float32) int {
+	size := r.raster.Size()
+	cellW := size.Width / float32(config.Cols)
+	return int(x/cellW) + 1
+}
+
+func (r *Raster) mouseRow(y float32) int {
+	size := r.raster.Size()
+	cellH := size.Height / float32(config.Rows)
+	return int(y/cellH) + 1
+}
+
 func (r *Raster) MouseDown(e *desktop.MouseEvent) {
+	col := r.mouseCol(e.Position.X)
+	row := r.mouseRow(e.Position.Y)
+
+	btn := 0
+	if e.Button == desktop.MouseButtonSecondary {
+		btn = 2
+	}
+
+	if r.Write != nil {
+		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dM", btn, col, row)))
+	}
+
 	r.selectStart = e.Position
 	r.selectEnd = e.Position
 	r.selecting = true
@@ -115,6 +141,18 @@ func (r *Raster) MouseDown(e *desktop.MouseEvent) {
 }
 
 func (r *Raster) MouseUp(e *desktop.MouseEvent) {
+	col := r.mouseCol(e.Position.X)
+	row := r.mouseRow(e.Position.Y)
+
+	btn := 0
+	if e.Button == desktop.MouseButtonSecondary {
+		btn = 2
+	}
+
+	if r.Write != nil {
+		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dm", btn, col, row)))
+	}
+
 	r.selectEnd = e.Position
 	r.selecting = false
 

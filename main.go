@@ -48,6 +48,7 @@ func main() {
 
 	raster := window.NewRaster(term.Screen, &term.CursorX, &term.CursorY)
 	raster.SetMinSize(fyne.NewSize(logicalW, logicalH))
+	raster.Write = term.Write
 
 	w.SetContent(raster)
 	w.SetFixedSize(true)
