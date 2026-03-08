@@ -4,7 +4,7 @@ A small terminal emulator written in Go, built on top of [tcell](https://github.
 
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat)
-![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey?style=flat)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey?style=flat)
 
 ## How It Works
 
