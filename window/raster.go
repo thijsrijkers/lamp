@@ -96,7 +96,7 @@ func (r *Raster) draw(w, h int) image.Image {
 		for row := row1; row <= row2; row++ {
 			for col := col1; col <= col2; col++ {
 				FillRect(img, col*cw, row*ch, cw, ch,
-					color.RGBA{R: 100, G: 150, B: 255, A: 80})
+					color.RGBA{R: 100, G: 150, B: 255, A: 120})
 			}
 		}
 	}
