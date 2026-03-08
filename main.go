@@ -68,6 +68,7 @@ func main() {
 
 	var superHeld bool
 	var pasteInProgress bool
+	var backspaceStop chan struct{}
 
 	if deskCanvas, ok := w.Canvas().(desktop.Canvas); ok {
 		deskCanvas.SetOnKeyDown(func(e *fyne.KeyEvent) {
@@ -81,6 +82,29 @@ func main() {
 				term.Write([]byte(content))
 				return
 			}
+			if e.Name == fyne.KeyBackspace {
+				if backspaceStop != nil {
+					return
+				}
+				ev := tcell.NewEventKey(tcell.KeyBackspace2, 0, tcell.ModNone)
+				events.HandleEvent(term.Screen, ev, term.Write)
+				backspaceStop = make(chan struct{})
+				go func() {
+					time.Sleep(250 * time.Millisecond)
+					ticker := time.NewTicker(50 * time.Millisecond)
+					defer ticker.Stop()
+					for {
+						select {
+						case <-ticker.C:
+							ev := tcell.NewEventKey(tcell.KeyBackspace2, 0, tcell.ModNone)
+							events.HandleEvent(term.Screen, ev, term.Write)
+						case <-backspaceStop:
+							return
+						}
+					}
+				}()
+				return
+			}
 			if ev := window.FyneKeyToTcell(e); ev != nil {
 				events.HandleEvent(term.Screen, ev, term.Write)
 			}
@@ -88,6 +112,12 @@ func main() {
 		deskCanvas.SetOnKeyUp(func(e *fyne.KeyEvent) {
 			if e.Name == desktop.KeySuperLeft || e.Name == desktop.KeySuperRight {
 				superHeld = false
+			}
+			if e.Name == fyne.KeyBackspace {
+				if backspaceStop != nil {
+					close(backspaceStop)
+					backspaceStop = nil
+				}
 			}
 		})
 	}
