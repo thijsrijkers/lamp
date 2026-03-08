@@ -122,18 +122,6 @@ func (r *Raster) mouseRow(y float32) int {
 }
 
 func (r *Raster) MouseDown(e *desktop.MouseEvent) {
-	col := r.mouseCol(e.Position.X)
-	row := r.mouseRow(e.Position.Y)
-
-	btn := 0
-	if e.Button == desktop.MouseButtonSecondary {
-		btn = 2
-	}
-
-	if r.Write != nil {
-		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dM", btn, col, row)))
-	}
-
 	r.selectStart = e.Position
 	r.selectEnd = e.Position
 	r.selecting = true
@@ -141,21 +129,29 @@ func (r *Raster) MouseDown(e *desktop.MouseEvent) {
 }
 
 func (r *Raster) MouseUp(e *desktop.MouseEvent) {
-	col := r.mouseCol(e.Position.X)
-	row := r.mouseRow(e.Position.Y)
-
-	btn := 0
-	if e.Button == desktop.MouseButtonSecondary {
-		btn = 2
-	}
-
-	if r.Write != nil {
-		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dm", btn, col, row)))
-	}
-
 	r.selectEnd = e.Position
 	r.selecting = false
 
+	dx := e.Position.X - r.selectStart.X
+	dy := e.Position.Y - r.selectStart.Y
+	isClick := dx*dx+dy*dy < 25 // within 5px
+
+	if isClick && r.Write != nil {
+		col := r.mouseCol(e.Position.X)
+		row := r.mouseRow(e.Position.Y)
+		btn := 0
+		if e.Button == desktop.MouseButtonSecondary {
+			btn = 2
+		}
+		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dM", btn, col, row)))
+		r.Write([]byte(fmt.Sprintf("\x1b[<%d;%d;%dm", btn, col, row)))
+		r.selectStart = fyne.Position{}
+		r.selectEnd = fyne.Position{}
+		r.raster.Refresh()
+		return
+	}
+
+	// it was a drag — treat as selection
 	size := r.raster.Size()
 	cellW := size.Width / float32(config.Cols)
 	cellH := size.Height / float32(config.Rows)
