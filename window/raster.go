@@ -88,10 +88,20 @@ func (r *Raster) MouseDown(e *desktop.MouseEvent) {
 }
 
 func (r *Raster) MouseUp(e *desktop.MouseEvent) {
-	col1 := int(r.selectStart.X / float32(CharW))
-	row1 := int(r.selectStart.Y / float32(CharH))
-	col2 := int(e.Position.X / float32(CharW))
-	row2 := int(e.Position.Y / float32(CharH))
+	size := r.raster.Size()
+	cellW := size.Width / float32(config.Cols)
+	cellH := size.Height / float32(config.Rows)
+
+	col1 := int(r.selectStart.X / cellW)
+	row1 := int(r.selectStart.Y / cellH)
+	col2 := int(e.Position.X / cellW)
+	row2 := int(e.Position.Y / cellH)
+
+	// clamp to bounds
+	col1 = max(0, min(col1, config.Cols-1))
+	col2 = max(0, min(col2, config.Cols-1))
+	row1 = max(0, min(row1, config.Rows-1))
+	row2 = max(0, min(row2, config.Rows-1))
 
 	var buf strings.Builder
 	for row := row1; row <= row2; row++ {
@@ -99,9 +109,12 @@ func (r *Raster) MouseUp(e *desktop.MouseEvent) {
 			ru, _, _, _ := r.screen.GetContent(col, row)
 			buf.WriteRune(ru)
 		}
+		if row < row2 {
+			buf.WriteRune('\n')
+		}
 	}
 
-	if r.OnSelect != nil {
+	if r.OnSelect != nil && buf.Len() > 0 {
 		r.OnSelect(buf.String())
 	}
 }
