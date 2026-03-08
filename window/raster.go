@@ -22,6 +22,8 @@ type Raster struct {
 	cursorY     *int
 	raster      *canvas.Raster
 	selectStart fyne.Position
+	selectEnd   fyne.Position
+	selecting   bool
 	OnSelect    func(string)
 }
 
@@ -76,6 +78,29 @@ func (r *Raster) draw(w, h int) image.Image {
 			color.RGBA{R: 255, G: 255, B: 255, A: 80})
 	}
 
+	if r.selecting || r.selectEnd != r.selectStart {
+		size := r.raster.Size()
+		cellW := size.Width / float32(config.Cols)
+		cellH := size.Height / float32(config.Rows)
+
+		col1 := int(r.selectStart.X / cellW)
+		row1 := int(r.selectStart.Y / cellH)
+		col2 := int(r.selectEnd.X / cellW)
+		row2 := int(r.selectEnd.Y / cellH)
+
+		col1 = max(0, min(col1, config.Cols-1))
+		col2 = max(0, min(col2, config.Cols-1))
+		row1 = max(0, min(row1, config.Rows-1))
+		row2 = max(0, min(row2, config.Rows-1))
+
+		for row := row1; row <= row2; row++ {
+			for col := col1; col <= col2; col++ {
+				FillRect(img, col*cw, row*ch, cw, ch,
+					color.RGBA{R: 100, G: 150, B: 255, A: 80})
+			}
+		}
+	}
+
 	return img
 }
 
@@ -85,9 +110,21 @@ func (r *Raster) CreateRenderer() fyne.WidgetRenderer {
 
 func (r *Raster) MouseDown(e *desktop.MouseEvent) {
 	r.selectStart = e.Position
+	r.selectEnd = e.Position
+	r.selecting = true
+}
+
+func (r *Raster) MouseMoved(e *desktop.MouseEvent) {
+	if r.selecting {
+		r.selectEnd = e.Position
+		r.raster.Refresh()
+	}
 }
 
 func (r *Raster) MouseUp(e *desktop.MouseEvent) {
+	r.selectEnd = e.Position
+	r.selecting = false
+
 	size := r.raster.Size()
 	cellW := size.Width / float32(config.Cols)
 	cellH := size.Height / float32(config.Rows)
@@ -97,7 +134,6 @@ func (r *Raster) MouseUp(e *desktop.MouseEvent) {
 	col2 := int(e.Position.X / cellW)
 	row2 := int(e.Position.Y / cellH)
 
-	// clamp to bounds
 	col1 = max(0, min(col1, config.Cols-1))
 	col2 = max(0, min(col2, config.Cols-1))
 	row1 = max(0, min(row1, config.Rows-1))
